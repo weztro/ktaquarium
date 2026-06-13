@@ -143,7 +143,7 @@ export default function EquipmentListingPage({ params }: { params: Promise<{ cat
             </div>
           )}
         </div>
-      </main>in>
+      </main>
 
       <Footer />
     </>
