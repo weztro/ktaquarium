@@ -110,19 +110,6 @@ export default function Navbar() {
  
           {/* Desktop CTA & Auth Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 rounded-full bg-card border border-border hover:border-accent text-text hover:text-accent transition-all duration-300 cursor-pointer flex items-center justify-center"
-              aria-label="Toggle Theme"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4 text-yellow-500 animate-pulse" />
-              ) : (
-                <Moon className="w-4 h-4 text-cyan-500" />
-              )}
-            </button>
-
             {/* Cart Icon Trigger */}
             <button
               onClick={() => setIsCartOpen(true)}
@@ -238,7 +225,22 @@ export default function Navbar() {
               Book Consultation
               <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-full bg-card border border-border hover:border-accent text-text hover:text-accent transition-all duration-300 cursor-pointer flex items-center justify-center"
+              aria-label="Toggle Theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4 text-yellow-500 animate-pulse" />
+              ) : (
+                <Moon className="w-4 h-4 text-cyan-500" />
+              )}
+            </button>
           </div>
+
+
 
           {/* Mobile Actions Container */}
           <div className="flex lg:hidden items-center gap-3">
