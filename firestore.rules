@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: Checks if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper: Gets the user document from Firestore
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    // Helper: Checks if the user has Admin role
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == 'madhansharonv@gmail.com' || 
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          getUserData().role == 'Admin'));
+    }
+    
+    // Helper: Checks if the user has Employee role
+    function isEmployee() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        getUserData().role == 'Employee';
+    }
+    
+    // Helper: Checks if user is Admin or Employee
+    function isStaff() {
+      return isAdmin() || isEmployee();
+    }
+
+    // Rules for users collection
+    match /users/{userId} {
+      // Anyone logged in can read their own profile, Admins can read all profiles
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      
+      // Users can write/update their own profile
+      // Admins can write/update/delete any user profile
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+    
+    // Rules for employees collection
+    match /employees/{employeeId} {
+      // Only Admins and Employees can read employee profiles
+      allow read: if isStaff();
+      // Only Admins can create/update/delete employee profiles
+      allow write: if isAdmin();
+    }
+    
+    // Rules for products collection
+    match /products/{productId} {
+      // Anyone (even unauthenticated users) can read the products
+      allow read: if true;
+      // Only staff (Admins and Employees) can write/update/delete products
+      allow write: if isStaff();
+    }
+    
+    // Rules for categories collection
+    match /categories/{categoryId} {
+      // Anyone can read categories
+      allow read: if true;
+      // Only staff can write/update/delete categories
+      allow write: if isStaff();
+    }
+
+    // Rules for catalogTypes collection
+    match /catalogTypes/{catalogTypeId} {
+      // Anyone can read catalogTypes
+      allow read: if true;
+      // Only staff can write/update/delete catalogTypes
+      allow write: if isStaff();
+    }
+    
+    // Rules for orders collection
+    match /orders/{orderId} {
+      // Admins/Employees can read/write all orders
+      // Standard users can read their own orders
+      allow read: if isStaff() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      
+      // Standard users can create orders if they are logged in and setting their own userId
+      // Admins/Employees can write (create/update/delete) any orders
+      allow create: if isAuthenticated() && (isStaff() || request.resource.data.userId == request.auth.uid);
+      allow update, delete: if isStaff();
+    }
+  }
+}
