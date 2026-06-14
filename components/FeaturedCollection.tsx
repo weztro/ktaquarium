@@ -163,7 +163,10 @@ export default function FeaturedCollection() {
               transition={{ duration: 0.8, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
               className="group flex flex-col h-full"
             >
-              <Link href={`/shop?type=${category.id.toUpperCase()}`} className="flex flex-col h-full">
+              <Link
+                href={category.id.toUpperCase() === "FISHES" ? "/shop/fishes" : `/shop?type=${category.id.toUpperCase()}`}
+                className="flex flex-col h-full"
+              >
                 <div className={`flex-1 relative overflow-hidden rounded-3xl bg-card border border-border ${getGlowStyles(category.id)} transition-all duration-500 p-6 md:p-8 flex flex-col justify-between h-full shadow-sm`}>
                   
                   {/* Decorative Borders */}

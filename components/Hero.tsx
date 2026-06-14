@@ -430,10 +430,21 @@ export default function Hero() {
             </div>
           ))}
         </motion.div>
+
+        {/* Mobile Scroll Indicator - Hidden on desktop */}
+        <div className="flex md:hidden flex-col items-center gap-1.5 text-muted hover:text-accent mt-8 mb-4 pointer-events-none w-full justify-center">
+          <span className="text-[8px] uppercase tracking-widest font-semibold">Scroll</span>
+          <motion.div
+            animate={{ y: [0, 4, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ArrowDown className="w-3.5 h-3.5" />
+          </motion.div>
+        </div>
       </div>
 
       {/* Floating scroll indicator at the bottom */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 text-muted hover:text-accent transition-colors pointer-events-none">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 hidden md:flex flex-col items-center gap-2 text-muted hover:text-accent transition-colors pointer-events-none">
         <span className="text-[10px] uppercase tracking-widest font-semibold">Scroll</span>
         <motion.div
           animate={{ y: [0, 6, 0] }}

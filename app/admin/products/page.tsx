@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import { useTheme } from "@/components/ThemeProvider";
 import Footer from "@/components/Footer";
 import RouteGuard from "@/components/RouteGuard";
 import { useAuth } from "@/components/AuthProvider";
@@ -39,6 +40,7 @@ export default function ProductManagementPage() {
 
 function ProductManagementContent() {
   const { userRole } = useAuth();
+  const { theme } = useTheme();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<ProductTab>("FISHES");
   const [products, setProducts] = useState<any[]>([]);
@@ -54,8 +56,17 @@ function ProductManagementContent() {
 
   // Form Fields
   const [formName, setFormName] = useState("");
-  const [formCategoryType, setFormCategoryType] = useState<ProductTab>("FISHES");
+  const [formCategoryType, setFormCategoryType] = useState<string>("monster");
   const [formDescription, setFormDescription] = useState("");
+
+  // Fish Specific Form Fields
+  const [formScientificName, setFormScientificName] = useState("");
+  const [formCareLevel, setFormCareLevel] = useState("Easy");
+  const [formTankSize, setFormTankSize] = useState("");
+  const [formFeedingInfo, setFormFeedingInfo] = useState("");
+  const [formSize, setFormSize] = useState("");
+  const [formOrigin, setFormOrigin] = useState("");
+  const [formWaterParams, setFormWaterParams] = useState("");
   const [formPrice, setFormPrice] = useState<number>(0);
   const [formQuantity, setFormQuantity] = useState<number>(0);
   const [formImageBase64, setFormImageBase64] = useState("");
@@ -177,24 +188,44 @@ function ProductManagementContent() {
 
   const handleOpenAdd = () => {
     setFormName("");
-    setFormCategoryType(activeTab);
+    setFormCategoryType(activeTab === "FISHES" ? "monster" : activeTab);
     setFormDescription("");
     setFormPrice(0);
     setFormQuantity(0);
     setFormImageBase64(activeTab === "FISHES" ? fishesBase64 : activeTab === "EQUIPMENTS" ? equipmentsBase64 : foodBase64);
     setFormStatus("Active");
+    
+    // Reset fish spec states
+    setFormScientificName("");
+    setFormCareLevel("Easy");
+    setFormTankSize("");
+    setFormFeedingInfo("");
+    setFormSize("");
+    setFormOrigin("");
+    setFormWaterParams("");
+    
     setIsAddOpen(true);
   };
 
   const handleOpenEdit = (item: any) => {
     setEditingItem(item);
     setFormName(item.name || "");
-    setFormCategoryType(item.categoryType || "FISHES");
+    setFormCategoryType(item.categoryType || "monster");
     setFormDescription(item.description || "");
     setFormPrice(item.price || 0);
     setFormQuantity(item.quantity || 0);
     setFormImageBase64(item.imageBase64 || "");
     setFormStatus(item.status || "Active");
+    
+    // Populate fish spec states
+    setFormScientificName(item.scientificName || "");
+    setFormCareLevel(item.careLevel || "Easy");
+    setFormTankSize(item.tankSize || "");
+    setFormFeedingInfo(item.feedingInfo || "");
+    setFormSize(item.size || item.weight || "");
+    setFormOrigin(item.origin || "");
+    setFormWaterParams(item.waterParams || "");
+    
     setIsEditOpen(true);
   };
 
@@ -234,17 +265,30 @@ function ProductManagementContent() {
       const generatedId = formName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const docRef = doc(db, "products", generatedId);
       
-      const payload = {
+      const isFish = ["monster", "exotic", "normal"].includes(formCategoryType);
+      const defaultImg = isFish ? fishesBase64 : formCategoryType === "EQUIPMENTS" ? equipmentsBase64 : foodBase64;
+
+      const payload: any = {
         id: generatedId,
         name: formName,
         description: formDescription,
         categoryType: formCategoryType,
         price: Number(formPrice),
         quantity: Number(formQuantity),
-        imageBase64: formImageBase64 || (formCategoryType === "FISHES" ? fishesBase64 : formCategoryType === "EQUIPMENTS" ? equipmentsBase64 : foodBase64),
+        imageBase64: formImageBase64 || defaultImg,
         status: formStatus,
         createdDate: new Date().toISOString()
       };
+
+      if (isFish) {
+        payload.scientificName = formScientificName;
+        payload.careLevel = formCareLevel;
+        payload.tankSize = formTankSize;
+        payload.feedingInfo = formFeedingInfo;
+        payload.size = formSize;
+        payload.origin = formOrigin;
+        payload.waterParams = formWaterParams;
+      }
 
       await setDoc(docRef, payload);
       showToast(`${formName} created successfully!`, "success");
@@ -279,14 +323,15 @@ function ProductManagementContent() {
       
       let payload: any = {};
       if (userRole === "Employee") {
-        // Employees can only edit Price and Stock (Quantity)
+        // Employees can edit Price, Stock (Quantity) and Status (Availability)
         payload = {
           price: Number(formPrice),
           quantity: Number(formQuantity),
-          status: formQuantity > 0 ? "Active" : "Inactive"
+          status: formStatus
         };
       } else {
         // Admins have full rights
+        const isFish = ["monster", "exotic", "normal"].includes(formCategoryType);
         payload = {
           name: formName,
           description: formDescription,
@@ -294,7 +339,14 @@ function ProductManagementContent() {
           price: Number(formPrice),
           quantity: Number(formQuantity),
           imageBase64: formImageBase64,
-          status: formStatus
+          status: formStatus,
+          scientificName: isFish ? formScientificName : "",
+          careLevel: isFish ? formCareLevel : "",
+          tankSize: isFish ? formTankSize : "",
+          feedingInfo: isFish ? formFeedingInfo : "",
+          size: isFish ? formSize : "",
+          origin: isFish ? formOrigin : "",
+          waterParams: isFish ? formWaterParams : ""
         };
       }
 
@@ -343,7 +395,12 @@ function ProductManagementContent() {
     );
   };
 
-  const filteredItems = products.filter((p) => p.categoryType === activeTab);
+  const filteredItems = products.filter((p) => {
+    if (activeTab === "FISHES") {
+      return ["monster", "exotic", "normal", "FISHES"].includes(p.categoryType);
+    }
+    return p.categoryType === activeTab;
+  });
 
   return (
     <main className="min-h-screen bg-bg pt-28 pb-16 relative overflow-hidden text-text transition-colors duration-300">
@@ -508,11 +565,11 @@ function ProductManagementContent() {
         </div>
 
       </div>
-
+ 
       {/* ==================== ADD PRODUCT MODAL ==================== */}
       <AnimatePresence>
         {isAddOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -520,57 +577,75 @@ function ProductManagementContent() {
               onClick={() => !isSubmitRunning && setIsAddOpen(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md overflow-y-auto max-h-[85vh] rounded-2xl border border-slate-200 bg-white p-6 shadow-xl z-10"
+            <motion.form
+              onSubmit={handleCreate}
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              className="relative w-full h-full md:h-auto md:max-h-[90vh] md:max-w-[800px] bg-white dark:bg-[#020817] rounded-none md:rounded-3xl border-t border-x md:border border-slate-200 dark:border-white/[0.08] shadow-2xl flex flex-col overflow-hidden z-10"
             >
-              <button
-                onClick={() => setIsAddOpen(false)}
-                disabled={isSubmitRunning}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-650 cursor-pointer disabled:opacity-50"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {/* Sticky Header */}
+              <div className="px-6 py-4 border-b border-slate-200 dark:border-white/[0.08] flex justify-between items-center shrink-0 bg-white dark:bg-[#020817]">
+                <div className="flex flex-col">
+                  <h2 className="text-lg font-display font-black text-[#0F172A] dark:text-white">Add New Product</h2>
+                  <div className="h-0.5 w-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded mt-1.5 shadow-[0_0_8px_rgba(6,182,212,0.4)]" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAddOpen(false)}
+                  disabled={isSubmitRunning}
+                  className="p-2 rounded-full bg-[#F1F5F9] dark:bg-[#0F172A] text-slate-400 hover:text-slate-650 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
 
-              <h2 className="text-xl font-display font-black text-slate-900 mb-5">Add New Product</h2>
-
-              <form onSubmit={handleCreate} className="flex flex-col gap-4 text-xs">
-                
+              {/* Scrollable Body */}
+              <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs text-[#0F172A] dark:text-white">
                 {/* Product Name */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Product Name</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Product Name</label>
                   <input
                     type="text"
                     required
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     disabled={isSubmitRunning}
-                    className="w-full rounded-xl px-4 py-3"
+                    className="w-full rounded-xl px-4 py-3 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
                     placeholder="e.g. Red Sea Max 300"
                   />
                 </div>
 
                 {/* Category Type */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Category Type</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Category Type</label>
                   <select
                     value={formCategoryType}
-                    onChange={(e) => setFormCategoryType(e.target.value as ProductTab)}
+                    onChange={(e) => {
+                      setFormCategoryType(e.target.value);
+                      if (["monster", "exotic", "normal"].includes(e.target.value)) {
+                        setFormImageBase64(fishesBase64);
+                      } else if (e.target.value === "EQUIPMENTS") {
+                        setFormImageBase64(equipmentsBase64);
+                      } else {
+                        setFormImageBase64(foodBase64);
+                      }
+                    }}
                     disabled={isSubmitRunning}
-                    className="w-full rounded-xl px-4 py-3 cursor-pointer"
+                    className="w-full rounded-xl px-4 py-3 cursor-pointer !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
                   >
-                    <option value="FISHES">Fishes</option>
-                    <option value="EQUIPMENTS">Equipments</option>
-                    <option value="FOOD">Fish Food</option>
+                    <option value="monster" className="bg-white dark:bg-[#0F172A]">Monster Fish</option>
+                    <option value="exotic" className="bg-white dark:bg-[#0F172A]">Exotic Fish</option>
+                    <option value="normal" className="bg-white dark:bg-[#0F172A]">Normal Fish</option>
+                    <option value="EQUIPMENTS" className="bg-white dark:bg-[#0F172A]">Equipments</option>
+                    <option value="FOOD" className="bg-white dark:bg-[#0F172A]">Fish Food</option>
                   </select>
                 </div>
 
                 {/* Price & Quantity Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Price ($)</label>
+                    <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Price ($)</label>
                     <input
                       type="number"
                       required
@@ -579,13 +654,13 @@ function ProductManagementContent() {
                       value={formPrice || ""}
                       onChange={(e) => setFormPrice(Number(e.target.value))}
                       disabled={isSubmitRunning}
-                      className="w-full rounded-xl px-4 py-3"
+                      className="w-full rounded-xl px-4 py-3 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
                       placeholder="0.00"
                     />
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Quantity</label>
+                    <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Quantity</label>
                     <input
                       type="number"
                       required
@@ -593,38 +668,132 @@ function ProductManagementContent() {
                       value={formQuantity || "0"}
                       onChange={(e) => setFormQuantity(Number(e.target.value))}
                       disabled={isSubmitRunning}
-                      className="w-full rounded-xl px-4 py-3"
+                      className="w-full rounded-xl px-4 py-3 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Description */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Description</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Description</label>
                   <textarea
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     disabled={isSubmitRunning}
-                    className="w-full rounded-xl px-4 py-3 h-20 resize-none"
+                    className="w-full rounded-xl px-4 py-3 h-20 resize-none !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
                     placeholder="Enter short details..."
                   />
                 </div>
 
+                {/* Fish Specifications Card (conditional) */}
+                {["monster", "exotic", "normal"].includes(formCategoryType) && (
+                  <div className="p-5 rounded-2xl bg-[#F8FAFC] dark:bg-[#071A52] border border-[#E2E8F0] dark:border-white/[0.08] space-y-4 shadow-sm">
+                    <span className="text-[10px] uppercase tracking-widest text-[#7C3AED] dark:text-[#a78bfa] font-black block">Fish Specifications</span>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Scientific Name</label>
+                        <input
+                          type="text"
+                          value={formScientificName}
+                          onChange={(e) => setFormScientificName(e.target.value)}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
+                          placeholder="e.g. Osteoglossum bicirrhosum"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Care Level</label>
+                        <select
+                          value={formCareLevel}
+                          onChange={(e) => setFormCareLevel(e.target.value)}
+                          className="w-full rounded-lg px-3 py-2.5 cursor-pointer !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
+                        >
+                          <option value="Easy" className="bg-white dark:bg-[#0F172A]">Easy</option>
+                          <option value="Moderate" className="bg-white dark:bg-[#0F172A]">Moderate</option>
+                          <option value="Expert" className="bg-white dark:bg-[#0F172A]">Expert</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Tank Size Rec.</label>
+                        <input
+                          type="text"
+                          value={formTankSize}
+                          onChange={(e) => setFormTankSize(e.target.value)}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
+                          placeholder="e.g. 50G+"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Diet / Feeding</label>
+                        <input
+                          type="text"
+                          value={formFeedingInfo}
+                          onChange={(e) => setFormFeedingInfo(e.target.value)}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
+                          placeholder="e.g. Omnivore"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Size / Weight</label>
+                        <input
+                          type="text"
+                          value={formSize}
+                          onChange={(e) => setFormSize(e.target.value)}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
+                          placeholder="e.g. 15 cm"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Origin</label>
+                        <input
+                          type="text"
+                          value={formOrigin}
+                          onChange={(e) => setFormOrigin(e.target.value)}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
+                          placeholder="e.g. Amazon River"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Water Parameters</label>
+                      <input
+                        type="text"
+                        value={formWaterParams}
+                        onChange={(e) => setFormWaterParams(e.target.value)}
+                        className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
+                        placeholder="e.g. pH 6.5 - 7.5 | 24-28°C"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Image Upload */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Product Image</label>
-                  <div className="flex items-center gap-3 border border-dashed border-slate-200 p-3 rounded-xl bg-slate-50">
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Product Image</label>
+                  <div className="relative border border-dashed border-[#CBD5E1] dark:border-white/15 p-6 rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] hover:bg-[#F1F5F9] dark:hover:bg-[#0F172A]/80 transition-colors flex flex-col items-center justify-center gap-2 text-center cursor-pointer">
+                    <Upload className="w-5 h-5 text-[#64748B] dark:text-[#94A3B8]" />
+                    <span className="text-[11px] text-[#64748B] dark:text-[#94A3B8] font-semibold">
+                      Drag and drop or <span className="text-cyan-500">browse</span> product image
+                    </span>
+                    <span className="text-[9px] text-[#64748B]/70 dark:text-[#94A3B8]/60">Supports PNG, JPG, JPEG</span>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
                       disabled={isSubmitRunning}
-                      className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer"
+                      className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
                     />
                   </div>
                   {/* Base64 Image Preview */}
                   {formImageBase64 && (
-                    <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-slate-200 mt-2">
+                    <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-[#E2E8F0] dark:border-white/10 mt-2">
                       <img
                         src={formImageBase64}
                         alt="Preview"
@@ -636,43 +805,53 @@ function ProductManagementContent() {
 
                 {/* Status */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Status</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Status</label>
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value)}
                     disabled={isSubmitRunning}
-                    className="w-full rounded-xl px-4 py-3 cursor-pointer"
+                    className="w-full rounded-xl px-4 py-3 cursor-pointer !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
                   >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                    <option value="Active" className="bg-white dark:bg-[#0F172A]">Active</option>
+                    <option value="Inactive" className="bg-white dark:bg-[#0F172A]">Inactive</option>
                   </select>
                 </div>
+              </div>
 
-                {/* Submit button */}
+              {/* Sticky Footer */}
+              <div className="px-6 py-4 border-t border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#071A52]/20 flex justify-end gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsAddOpen(false)}
+                  disabled={isSubmitRunning}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50 border border-[#CBD5E1] dark:border-[#1E293B] text-[#475569] dark:text-[#CBD5E1] hover:bg-slate-100 dark:hover:bg-white/5"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
                   disabled={isSubmitRunning}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 py-3.5 px-4 font-bold text-white uppercase tracking-wider cursor-pointer shadow-md mt-2 disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-xs font-bold uppercase tracking-wider text-white transition-all cursor-pointer shadow-md hover:shadow-cyan-500/20 hover:opacity-95 disabled:opacity-50 flex items-center gap-2"
                 >
                   {isSubmitRunning ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                       <span>Saving...</span>
                     </>
                   ) : (
                     <span>Add Product</span>
                   )}
                 </button>
-              </form>
-            </motion.div>
+              </div>
+            </motion.form>
           </div>
         )}
       </AnimatePresence>
-
+ 
       {/* ==================== EDIT PRODUCT MODAL ==================== */}
       <AnimatePresence>
         {isEditOpen && editingItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -680,66 +859,77 @@ function ProductManagementContent() {
               onClick={() => !isSubmitRunning && setIsEditOpen(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-md overflow-y-auto max-h-[85vh] rounded-2xl border border-slate-200 bg-white p-6 shadow-xl z-10"
+            <motion.form
+              onSubmit={handleUpdate}
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              className="relative w-full h-full md:h-auto md:max-h-[90vh] md:max-w-[800px] bg-white dark:bg-[#020817] rounded-none md:rounded-3xl border-t border-x md:border border-slate-200 dark:border-white/[0.08] shadow-2xl flex flex-col overflow-hidden z-10"
             >
-              <button
-                onClick={() => setIsEditOpen(false)}
-                disabled={isSubmitRunning}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-650 cursor-pointer disabled:opacity-50"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <h2 className="text-xl font-display font-black text-slate-900 mb-2">Edit Product</h2>
-              <p className="text-[10px] text-slate-450 uppercase font-semibold tracking-wider mb-5">
-                Role Permissions: <strong className="text-cyan-600">{userRole}</strong>
-              </p>
-
-              {userRole === "Employee" && (
-                <div className="flex items-center gap-2 p-3 bg-cyan-50 border border-cyan-100 rounded-xl mb-4 text-[10px] text-cyan-800 leading-relaxed">
-                  <Info className="w-4 h-4 shrink-0 text-cyan-600" />
-                  <span>Employees can only modify pricing and inventory stock levels. Description and media files are locked.</span>
+              {/* Sticky Header */}
+              <div className="px-6 py-4 border-b border-slate-200 dark:border-white/[0.08] flex justify-between items-center shrink-0 bg-white dark:bg-[#020817]">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-display font-black text-[#0F172A] dark:text-white">Edit Product</h2>
+                    <span className="text-[9px] uppercase px-2.5 py-0.5 rounded-full font-bold tracking-wider bg-cyan-100 text-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-400">
+                      {userRole}
+                    </span>
+                  </div>
+                  <div className="h-0.5 w-12 bg-gradient-to-r from-cyan-500 to-purple-600 rounded mt-1.5 shadow-[0_0_8px_rgba(6,182,212,0.4)]" />
                 </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(false)}
+                  disabled={isSubmitRunning}
+                  className="p-2 rounded-full bg-[#F1F5F9] dark:bg-[#0F172A] text-slate-400 hover:text-slate-650 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
 
-              <form onSubmit={handleUpdate} className="flex flex-col gap-4 text-xs">
-                
+              {/* Scrollable Body */}
+              <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs text-[#0F172A] dark:text-white">
+                {userRole === "Employee" && (
+                  <div className="flex items-center gap-2 p-3 bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-100 dark:border-cyan-900/30 rounded-xl text-[10px] text-cyan-800 dark:text-cyan-200 leading-relaxed">
+                    <Info className="w-4 h-4 shrink-0 text-cyan-600 dark:text-cyan-400" />
+                    <span>Employees can only modify pricing, inventory stock levels, and status. Title, category, specifications, and media files are locked.</span>
+                  </div>
+                )}
+
                 {/* Product Name */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Product Name</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Product Name</label>
                   <input
                     type="text"
                     required
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     disabled={isSubmitRunning || userRole === "Employee"}
-                    className="w-full rounded-xl px-4 py-3 disabled:opacity-60"
+                    className="w-full rounded-xl px-4 py-3 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
                   />
                 </div>
 
                 {/* Category Type */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Category Type</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Category Type</label>
                   <select
                     value={formCategoryType}
-                    onChange={(e) => setFormCategoryType(e.target.value as ProductTab)}
+                    onChange={(e) => setFormCategoryType(e.target.value)}
                     disabled={isSubmitRunning || userRole === "Employee"}
-                    className="w-full rounded-xl px-4 py-3 cursor-pointer disabled:opacity-60"
+                    className="w-full rounded-xl px-4 py-3 cursor-pointer !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
                   >
-                    <option value="FISHES">Fishes</option>
-                    <option value="EQUIPMENTS">Equipments</option>
-                    <option value="FOOD">Fish Food</option>
+                    <option value="monster" className="bg-white dark:bg-[#0F172A]">Monster Fish</option>
+                    <option value="exotic" className="bg-white dark:bg-[#0F172A]">Exotic Fish</option>
+                    <option value="normal" className="bg-white dark:bg-[#0F172A]">Normal Fish</option>
+                    <option value="EQUIPMENTS" className="bg-white dark:bg-[#0F172A]">Equipments</option>
+                    <option value="FOOD" className="bg-white dark:bg-[#0F172A]">Fish Food</option>
                   </select>
                 </div>
 
                 {/* Price & Quantity Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Price ($)</label>
+                    <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Price ($)</label>
                     <input
                       type="number"
                       required
@@ -748,12 +938,12 @@ function ProductManagementContent() {
                       value={formPrice || ""}
                       onChange={(e) => setFormPrice(Number(e.target.value))}
                       disabled={isSubmitRunning}
-                      className="w-full rounded-xl px-4 py-3"
+                      className="w-full rounded-xl px-4 py-3 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
                     />
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Quantity</label>
+                    <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Quantity</label>
                     <input
                       type="number"
                       required
@@ -761,36 +951,138 @@ function ProductManagementContent() {
                       value={formQuantity || "0"}
                       onChange={(e) => setFormQuantity(Number(e.target.value))}
                       disabled={isSubmitRunning}
-                      className="w-full rounded-xl px-4 py-3"
+                      className="w-full rounded-xl px-4 py-3 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Description */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Description</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Description</label>
                   <textarea
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     disabled={isSubmitRunning || userRole === "Employee"}
-                    className="w-full rounded-xl px-4 py-3 h-20 resize-none disabled:opacity-60"
+                    className="w-full rounded-xl px-4 py-3 h-20 resize-none !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
                   />
                 </div>
 
+                {/* Fish Specifications Card (conditional) */}
+                {["monster", "exotic", "normal"].includes(formCategoryType) && (
+                  <div className="p-5 rounded-2xl bg-[#F8FAFC] dark:bg-[#071A52] border border-[#E2E8F0] dark:border-white/[0.08] space-y-4 shadow-sm">
+                    <span className="text-[10px] uppercase tracking-widest text-[#7C3AED] dark:text-[#a78bfa] font-black block">Fish Specifications</span>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Scientific Name</label>
+                        <input
+                          type="text"
+                          value={formScientificName}
+                          onChange={(e) => setFormScientificName(e.target.value)}
+                          disabled={isSubmitRunning || userRole === "Employee"}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
+                          placeholder="e.g. Osteoglossum bicirrhosum"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Care Level</label>
+                        <select
+                          value={formCareLevel}
+                          onChange={(e) => setFormCareLevel(e.target.value)}
+                          disabled={isSubmitRunning || userRole === "Employee"}
+                          className="w-full rounded-lg px-3 py-2.5 cursor-pointer !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
+                        >
+                          <option value="Easy" className="bg-white dark:bg-[#0F172A]">Easy</option>
+                          <option value="Moderate" className="bg-white dark:bg-[#0F172A]">Moderate</option>
+                          <option value="Expert" className="bg-white dark:bg-[#0F172A]">Expert</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Tank Size Rec.</label>
+                        <input
+                          type="text"
+                          value={formTankSize}
+                          onChange={(e) => setFormTankSize(e.target.value)}
+                          disabled={isSubmitRunning || userRole === "Employee"}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
+                          placeholder="e.g. 50G+"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Diet / Feeding</label>
+                        <input
+                          type="text"
+                          value={formFeedingInfo}
+                          onChange={(e) => setFormFeedingInfo(e.target.value)}
+                          disabled={isSubmitRunning || userRole === "Employee"}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
+                          placeholder="e.g. Omnivore"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Size / Weight</label>
+                        <input
+                          type="text"
+                          value={formSize}
+                          onChange={(e) => setFormSize(e.target.value)}
+                          disabled={isSubmitRunning || userRole === "Employee"}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
+                          placeholder="e.g. 15 cm"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Origin</label>
+                        <input
+                          type="text"
+                          value={formOrigin}
+                          onChange={(e) => setFormOrigin(e.target.value)}
+                          disabled={isSubmitRunning || userRole === "Employee"}
+                          className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
+                          placeholder="e.g. Amazon River"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[9px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Water Parameters</label>
+                      <input
+                        type="text"
+                        value={formWaterParams}
+                        onChange={(e) => setFormWaterParams(e.target.value)}
+                        disabled={isSubmitRunning || userRole === "Employee"}
+                        className="w-full rounded-lg px-3 py-2.5 !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] placeholder:!text-[#64748B] dark:placeholder:!text-[#94A3B8] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all disabled:opacity-60"
+                        placeholder="e.g. pH 6.5 - 7.5 | 24-28°C"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Image Upload */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Product Image</label>
-                  <div className="flex items-center gap-3 border border-dashed border-slate-200 p-3 rounded-xl bg-slate-50 opacity-100 disabled:opacity-60">
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Product Image</label>
+                  <div className="relative border border-dashed border-[#CBD5E1] dark:border-white/15 p-6 rounded-xl bg-[#F8FAFC] dark:bg-[#0F172A] hover:bg-[#F1F5F9] dark:hover:bg-[#0F172A]/80 transition-colors flex flex-col items-center justify-center gap-2 text-center cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    <Upload className="w-5 h-5 text-[#64748B] dark:text-[#94A3B8]" />
+                    <span className="text-[11px] text-[#64748B] dark:text-[#94A3B8] font-semibold">
+                      Drag and drop or <span className="text-cyan-500">browse</span> product image
+                    </span>
+                    <span className="text-[9px] text-[#64748B]/70 dark:text-[#94A3B8]/60">Supports PNG, JPG, JPEG</span>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
                       disabled={isSubmitRunning || userRole === "Employee"}
-                      className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer disabled:cursor-not-allowed"
+                      className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
                     />
                   </div>
+                  {/* Base64 Image Preview */}
                   {formImageBase64 && (
-                    <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-slate-200 mt-2">
+                    <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-[#E2E8F0] dark:border-white/10 mt-2">
                       <img
                         src={formImageBase64}
                         alt="Preview"
@@ -802,35 +1094,45 @@ function ProductManagementContent() {
 
                 {/* Status */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[9px] uppercase tracking-wider text-slate-450 font-bold">Status</label>
+                  <label className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#94A3B8] font-bold">Status</label>
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value)}
-                    disabled={isSubmitRunning || userRole === "Employee"}
-                    className="w-full rounded-xl px-4 py-3 cursor-pointer disabled:opacity-60"
+                    disabled={isSubmitRunning}
+                    className="w-full rounded-xl px-4 py-3 cursor-pointer !bg-white dark:!bg-[#0F172A] !text-[#0F172A] dark:!text-white !border-[#E2E8F0] dark:!border-white/[0.08] focus:!border-cyan-500 focus:!ring-2 focus:!ring-cyan-500/20 focus:!outline-none transition-all"
                   >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                    <option value="Active" className="bg-white dark:bg-[#0F172A]">Active</option>
+                    <option value="Inactive" className="bg-white dark:bg-[#0F172A]">Inactive</option>
                   </select>
                 </div>
+              </div>
 
-                {/* Submit button */}
+              {/* Sticky Footer */}
+              <div className="px-6 py-4 border-t border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-[#071A52]/20 flex justify-end gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(false)}
+                  disabled={isSubmitRunning}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-50 border border-[#CBD5E1] dark:border-[#1E293B] text-[#475569] dark:text-[#CBD5E1] hover:bg-slate-100 dark:hover:bg-white/5"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
                   disabled={isSubmitRunning}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 py-3.5 px-4 font-bold text-white uppercase tracking-wider cursor-pointer shadow-md mt-2 disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-xs font-bold uppercase tracking-wider text-white transition-all cursor-pointer shadow-md hover:shadow-cyan-500/20 hover:opacity-95 disabled:opacity-50 flex items-center gap-2"
                 >
                   {isSubmitRunning ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
                       <span>Saving...</span>
                     </>
                   ) : (
                     <span>Save Changes</span>
                   )}
                 </button>
-              </form>
-            </motion.div>
+              </div>
+            </motion.form>
           </div>
         )}
       </AnimatePresence>

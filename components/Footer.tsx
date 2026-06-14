@@ -108,8 +108,35 @@ export default function Footer() {
         </div>
 
         {/* Legal info */}
-        <div className="flex flex-col md:flex-row items-center justify-between text-[11px] text-muted font-medium">
-          <span>&copy; {year} K.T AQUARIUM. All Rights Reserved.</span>
+        <div className="flex flex-col md:flex-row items-center justify-between text-[11px] text-muted font-medium gap-4">
+          <div className="flex flex-col md:flex-row items-center gap-3 text-center md:text-left">
+            <span>
+              &copy; {year} K.T AQUARIUM. Designed & Developed by{" "}
+              <a
+                href="https://weztro.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline font-extrabold bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent"
+              >
+                WEZTRO
+              </a>
+              . All Rights Reserved.
+            </span>
+            <a
+              href="https://weztro.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#F1F5F9] dark:bg-[#0F172A] border border-[#E2E8F0] dark:border-white/10 hover:border-cyan-500/30 transition-all duration-350 shadow-sm animate-pulse"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
+              <span className="text-[10px] font-bold">
+                Built by{" "}
+                <span className="bg-gradient-to-r from-cyan-550 to-purple-600 bg-clip-text text-transparent font-black">
+                  WEZTRO
+                </span>
+              </span>
+            </a>
+          </div>
           <div className="flex gap-4 mt-4 md:mt-0">
             <a href="#" className="hover:text-accent transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-accent transition-colors">Terms of Service</a>

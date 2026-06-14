@@ -306,13 +306,26 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               )}
 
               {/* Close Button / Cancel */}
-              <button
-                onClick={onClose}
-                disabled={isAuthenticating}
-                className="mt-6 text-xs text-muted hover:text-text hover:underline transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                Close Window
-              </button>
+              <div className="flex flex-col items-center gap-4 mt-6">
+                <button
+                  onClick={onClose}
+                  disabled={isAuthenticating}
+                  className="text-xs text-muted hover:text-text hover:underline transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  Close Window
+                </button>
+                <span className="text-[10px] text-muted/60 font-medium">
+                  Designed by{" "}
+                  <a
+                    href="https://weztro.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold hover:underline bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent"
+                  >
+                    WEZTRO
+                  </a>
+                </span>
+              </div>
 
             </div>
           </motion.div>
