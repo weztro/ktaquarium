@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { CartProvider } from "@/components/CartProvider";
 import CartDrawer from "@/components/CartDrawer";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { BRAND } from "@/lib/brand-config";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -20,13 +21,13 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "K.T AQUARIUM | Luxury Showroom & Aquascaping Experience",
-  description: "Transform your spaces with bespoke luxury aquariums, rare exotic fish, professional aquascaping, and premium maintenance services. Enter the world of high-end marine exhibits.",
-  keywords: ["aquarium", "luxury aquarium", "bespoke aquascaping", "K.T Aquarium", "exotic fish", "marine reef tank", "premium aquariums"],
-  authors: [{ name: "K.T AQUARIUM" }],
+  title: `${BRAND.shopName} | Premium Aquarium Store`,
+  description: BRAND.description,
+  keywords: ["aquarium", "luxury aquarium", "bespoke aquascaping", BRAND.shopName, "exotic fish", "marine reef tank", "premium aquariums"],
+  authors: [{ name: BRAND.shopName }],
   openGraph: {
-    title: "K.T AQUARIUM | Luxury Showroom & Aquascaping Experience",
-    description: "Transform your spaces with bespoke luxury aquariums, rare exotic fish, professional aquascaping, and premium maintenance services.",
+    title: `${BRAND.shopName} | Premium Aquarium Store`,
+    description: BRAND.description,
     type: "website",
   },
 };

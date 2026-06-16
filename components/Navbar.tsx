@@ -9,6 +9,7 @@ import { useAuth } from "./AuthProvider";
 import LoginModal from "./LoginModal";
 import { useCart } from "./CartProvider";
 import { useTheme } from "./ThemeProvider";
+import { BRAND } from "@/lib/brand-config";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -90,7 +91,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <span className="text-xl md:text-2xl font-display font-extrabold tracking-widest bg-gradient-to-r from-text via-accent to-accent-purple bg-clip-text text-transparent group-hover:opacity-85 transition-opacity duration-300">
-              K.T AQUARIUM
+              {BRAND.shopName}
             </span>
           </Link>
  

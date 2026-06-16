@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, Mail, Lock, AlertCircle, ArrowLeft } from "lucide-react";
 import { useAuth } from "./AuthProvider";
+import { BRAND } from "@/lib/brand-config";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -154,7 +155,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               {/* Title & Subtitle */}
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-display font-extrabold tracking-wide text-text">
-                  {view === "login" && <>Welcome to <span className="bg-gradient-to-r from-accent to-accent-purple bg-clip-text text-transparent">K.T AQUARIUM</span></>}
+                  {view === "login" && <>Welcome to <span className="bg-gradient-to-r from-accent to-accent-purple bg-clip-text text-transparent">{BRAND.shopName}</span></>}
                   {view === "register" && "Create Account"}
                   {view === "forgot" && "Reset Password"}
                 </h2>
@@ -292,7 +293,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
                     {/* Registration Option */}
                     <div className="text-center text-xs text-muted mt-2">
-                      New to K.T Aquarium?{" "}
+                      New to {BRAND.shopName}?{" "}
                       <button
                         onClick={() => handleViewChange("register")}
                         disabled={isAuthenticating}

@@ -4,6 +4,7 @@ import React from "react";
 import SafeImage from "@/components/SafeImage";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
+import { BRAND } from "@/lib/brand-config";
 
 interface TestimonialItem {
   name: string;
@@ -18,14 +19,14 @@ const testimonials: TestimonialItem[] = [
     name: "Dr. Alexander Sterling",
     role: "Collector & Homeowner",
     avatar: "/avatars/avatar-1.jpg",
-    comment: "K.T Aquarium turned my home study into a peaceful underwater haven. Their biological team's knowledge is unparalleled; the corals have doubled in size in just six months.",
+    comment: `${BRAND.shopName} turned my home study into a peaceful underwater haven. Their biological team's knowledge is unparalleled; the corals have doubled in size in just six months.`,
     rating: 5,
   },
   {
     name: "Genevieve Vance",
     role: "Lead Architect, NV Design",
     avatar: "/avatars/avatar-2.jpg",
-    comment: "We commissioned a 10-foot room divider tank for a corporate client. K.T Aquarium managed the plumbing engineering and glass installation flawlessly. Truly high-end custom service.",
+    comment: `We commissioned a 10-foot room divider tank for a corporate client. ${BRAND.shopName} managed the plumbing engineering and glass installation flawlessly. Truly high-end custom service.`,
     rating: 5,
   },
   {

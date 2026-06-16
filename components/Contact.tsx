@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Phone, MessageCircle, Mail, MapPin, Send, Check } from "lucide-react";
+import { BRAND } from "@/lib/brand-config";
 
 export default function Contact() {
   const [formState, setFormState] = useState({
@@ -56,8 +57,8 @@ export default function Contact() {
                   <span className="text-[10px] uppercase tracking-widest font-semibold text-text-secondary block">
                     Phone Support
                   </span>
-                  <a href="tel:+18005550199" className="text-sm font-bold text-text hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors">
-                    +1 (800) 555-0199
+                  <a href={`tel:${BRAND.phone}`} className="text-sm font-bold text-text hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors">
+                    {BRAND.phone}
                   </a>
                 </div>
               </div>
@@ -71,8 +72,8 @@ export default function Contact() {
                   <span className="text-[10px] uppercase tracking-widest font-semibold text-text-secondary block">
                     WhatsApp Chat
                   </span>
-                  <a href="https://wa.me/18005550199" target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-text hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors">
-                    +1 (800) 555-0199
+                  <a href={`https://wa.me/${BRAND.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-text hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors">
+                    {BRAND.phone}
                   </a>
                 </div>
               </div>
@@ -86,8 +87,8 @@ export default function Contact() {
                   <span className="text-[10px] uppercase tracking-widest font-semibold text-text-secondary block">
                     Direct Email
                   </span>
-                  <a href="mailto:showroom@ktaquarium.com" className="text-sm font-bold text-text hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors">
-                    showroom@ktaquarium.com
+                  <a href={`mailto:${BRAND.email}`} className="text-sm font-bold text-text hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors">
+                    {BRAND.email}
                   </a>
                 </div>
               </div>
@@ -102,7 +103,7 @@ export default function Contact() {
                     Luxury Showroom
                   </span>
                   <span className="text-sm font-bold text-text">
-                    742 Marine Drive, Suite 100, Coral Gables, FL
+                    {BRAND.address}
                   </span>
                 </div>
               </div>

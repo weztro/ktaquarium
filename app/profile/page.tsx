@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
 import { Loader2, Calendar, Mail, User as UserIcon } from "lucide-react";
 import Image from "next/image";
+import { BRAND } from "@/lib/brand-config";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -23,7 +24,7 @@ export default function ProfilePage() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-bg text-text">
         <div className="relative flex items-center justify-center">
           <Loader2 className="h-16 w-16 animate-spin text-accent filter drop-shadow-[0_0_15px_rgba(6,182,212,0.2)]" />
-          <span className="absolute text-xs font-semibold tracking-wider text-accent">K.T</span>
+          <span className="absolute text-xs font-semibold tracking-wider text-accent">{BRAND.shopName.split(' ')[0]}</span>
         </div>
         <p className="mt-4 text-sm tracking-widest uppercase text-muted animate-pulse">Loading Profile...</p>
       </div>

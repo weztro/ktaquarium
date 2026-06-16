@@ -20,6 +20,7 @@ import { useToast } from "@/components/Toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { convertImageToBase64 } from "@/lib/image";
 import { subscribeToCollection } from "@/lib/firestoreService";
+import { BRAND } from "@/lib/brand-config";
 
 type ProductTab = "FISHES" | "EQUIPMENTS" | "FOOD";
 
@@ -562,8 +563,35 @@ function ProductManagementContent() {
               ))}
             </div>
           )}
+          
+          {/* Admin Panel Footer Branding */}
+          <div className="mt-12 pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between text-[11px] text-muted font-medium gap-2">
+            <span>{BRAND.shopName} Admin Portal</span>
+            <span>
+              Powered by{" "}
+              <a
+                href="https://weztro.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-extrabold hover:underline bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent hover:brightness-110 transition-all"
+              >
+                {BRAND.companyName}
+              </a>
+            </span>
+          </div>
         </div>
 
+        {/* Floating Corner Branding */}
+        <div className="fixed bottom-6 right-6 z-45 bg-card/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-border text-[9px] font-black tracking-widest hover:border-cyan-500/30 transition-all duration-300 shadow-lg flex items-center justify-center">
+          <a
+            href="https://weztro.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent hover:brightness-110"
+          >
+            {BRAND.companyName}™
+          </a>
+        </div>
       </div>
  
       {/* ==================== ADD PRODUCT MODAL ==================== */}

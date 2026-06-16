@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { MessageCircle } from "lucide-react";
+import { BRAND } from "@/lib/brand-config";
 
 export default function Footer() {
   const [year, setYear] = useState(2026);
@@ -19,7 +20,7 @@ export default function Footer() {
           {/* Brand Col */}
           <div className="lg:col-span-4">
             <span className="text-lg font-display font-extrabold tracking-widest bg-gradient-to-r from-text via-accent to-accent-purple bg-clip-text text-transparent block mb-4">
-              K.T AQUARIUM
+              {BRAND.shopName}
             </span>
             <p className="text-muted text-xs md:text-sm leading-relaxed max-w-sm mb-6">
               Engineering pristine marine ecosystems and living works of art for residential and commercial displays worldwide.
@@ -111,14 +112,14 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between text-[11px] text-muted font-medium gap-4">
           <div className="flex flex-col md:flex-row items-center gap-3 text-center md:text-left">
             <span>
-              &copy; {year} K.T AQUARIUM. Designed & Developed by{" "}
+              &copy; {year} {BRAND.shopName}. Designed & Developed by{" "}
               <a
                 href="https://weztro.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline font-extrabold bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent"
               >
-                WEZTRO
+                {BRAND.companyName}
               </a>
               . All Rights Reserved.
             </span>
@@ -132,7 +133,7 @@ export default function Footer() {
               <span className="text-[10px] font-bold">
                 Built by{" "}
                 <span className="bg-gradient-to-r from-cyan-550 to-purple-600 bg-clip-text text-transparent font-black">
-                  WEZTRO
+                  {BRAND.companyName}
                 </span>
               </span>
             </a>

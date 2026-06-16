@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image, { ImageProps } from "next/image";
+import { BRAND } from "@/lib/brand-config";
 
 interface SafeImageProps extends ImageProps {
   fallbackSrc?: string;
@@ -20,7 +21,7 @@ export default function SafeImage({ src, alt, fallbackSrc = "/hero-fish.png", ..
     <Image
       {...props}
       src={imgSrc || fallbackSrc}
-      alt={alt || "K.T Aquarium visual display"}
+      alt={alt || `${BRAND.shopName} visual display`}
       onError={() => {
         setImgSrc(fallbackSrc);
       }}

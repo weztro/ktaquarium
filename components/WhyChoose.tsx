@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { BRAND } from "@/lib/brand-config";
 import { 
   Users, 
   Heart, 
@@ -59,10 +60,10 @@ export default function WhyChoose() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-20">
           <div className="max-w-xl">
             <span className="text-xs font-semibold tracking-widest uppercase text-cyan-500 dark:text-cyan-400">
-              The K.T Advantage
+              The {BRAND.shopName.split(' ')[0]} Advantage
             </span>
             <h2 className="text-4xl md:text-5xl font-display font-extrabold text-text mt-3">
-              Why Choose K.T Aquarium
+              Why Choose {BRAND.shopName}
             </h2>
           </div>
           <p className="text-text-secondary max-w-sm mt-4 md:mt-0 text-sm md:text-base">

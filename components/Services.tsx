@@ -11,6 +11,7 @@ import {
   Sparkles,
   ArrowUpRight 
 } from "lucide-react";
+import { BRAND } from "@/lib/brand-config";
 
 interface ServiceItem {
   title: string;
@@ -69,7 +70,7 @@ export default function Services() {
               Bespoke Maintenance & Architectural Setup
             </h2>
             <p className="text-text-secondary mt-6 leading-relaxed text-sm md:text-base">
-              At K.T Aquarium, we believe aquariums are live, breathing works of fine art. Our engineers, biologists, and aquascapers ensure your underwater showroom remains a pristine, healthy environment for decades.
+              At {BRAND.shopName}, we believe aquariums are live, breathing works of fine art. Our engineers, biologists, and aquascapers ensure your underwater showroom remains a pristine, healthy environment for decades.
             </p>
             <p className="text-text-secondary/70 mt-4 leading-relaxed text-sm">
               We offer comprehensive residential and commercial services, including automated dosing controls and custom cabinet design matching high-end furniture aesthetics.
